@@ -53,6 +53,14 @@ public class ModMain : MelonMod
 
     private static void OnButtonSelected(KnowledgeSkillTree __instance, KnowledgeSkillBtn __0)
     {
+        // Make sure our changes to prereq text get reverted
+        NK_TextMeshProUGUI prereqText = __instance.selectedPanelPrereqTxt;
+
+        if (prereqText != null)
+        {
+            prereqText.AutoLocalize = true;
+        }
+        
         if (__0 == null || __0.CurrState != KnowlegdeSkillBtnState.Purchased || !Game.Player.HasKnowledge(__0.KnowledgeID))
         {
             if (_buttonCopy != null)
@@ -66,30 +74,48 @@ public class ModMain : MelonMod
             {
                 _buttonCopy = CreateButtonCopy(__instance);
             }
-            _buttonCopy.active = IsKnowledgeRefundable(__0.knowledgeID);
+
+            string refundableReason = IsKnowledgeRefundable(__0.knowledgeID);
+            _buttonCopy.active = refundableReason == null;
+
+            if (refundableReason != null && prereqText != null)
+            {
+                prereqText.AutoLocalize = false;
+                prereqText.text = refundableReason;
+            }
         }
     }
 
-    private static bool IsKnowledgeRefundable(string knowledgeId)
+    private static string IsKnowledgeRefundable(string knowledgeId)
     {
         KnowledgeModel knowledge = KnowledgeHelper.GetKnowledge(knowledgeId);
         if (knowledge == null)
         {
-            return false;
+            return "Invalid knowledge";
         }
 
-        // Check if the knowledge is a prerequisite to any other knowledge that we own
         Il2CppReferenceArray<KnowledgeModel> knowledgeInCategory = KnowledgeHelper.GetKnowledgeForCategory(knowledge.category);
+        int totalInvestment = knowledgeInCategory.Sum(k => Game.Player.HasKnowledge(k.name) ? 1 : 0);
         for (int i = 0; i < knowledgeInCategory.Length; i++)
         {
-            if (Game.Player.HasKnowledge(knowledgeInCategory[i].name)
-                && knowledgeInCategory[i].prerequisiteIds.Contains(knowledgeId))
+            if (knowledgeInCategory[i].name != knowledgeId && Game.Player.HasKnowledge(knowledgeInCategory[i].name))
             {
-                return false;
+                // Check if the knowledge is a prerequisite to any other knowledge that we own
+                if (knowledgeInCategory[i].prerequisiteIds.Contains(knowledgeId))
+                {
+                    return "Knowledge still has other knowledge that depend on it.";
+                }
+
+                // Check if the knowledge will be impossible to get if we reduce investment
+                if (totalInvestment - 1 <= knowledgeInCategory[i].investmentRequired)
+                {
+                    return "Refunding knowledge would reduce total points below other knowledge's requirement.";
+                }
             }
+
         }
 
-        return true;
+        return null;
     }
 
     private static GameObject CreateButtonCopy(KnowledgeSkillTree tree)
