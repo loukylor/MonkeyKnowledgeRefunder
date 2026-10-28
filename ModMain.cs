@@ -22,6 +22,8 @@ public class ModMain : MelonMod
 
     public override void OnInitializeMelon()
     {
+        _logger = LoggerInstance;
+
         MethodBase methodToPatch = AccessTools.Method(typeof(KnowledgeSkillTree), nameof(KnowledgeSkillTree.BtnClicked));
         MethodInfo patchMethod = AccessTools.Method(typeof(ModMain), nameof(OnButtonSelected));
         if (methodToPatch == null || patchMethod == null)
@@ -41,8 +43,6 @@ public class ModMain : MelonMod
         }
 
         HarmonyInstance.Patch(methodToPatch, postfix: new HarmonyMethod(patchMethod));
-
-        _logger = LoggerInstance;
     }
 
     public override void OnSceneWasUnloaded(int buildIndex, string sceneName)
