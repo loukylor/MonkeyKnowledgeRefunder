@@ -211,16 +211,8 @@ public class ModMain : MelonMod
         Game.Player.Data.KnowledgePoints++;
 
         tree.UpdateButtonStates();
-        Button selectedPanelButton = tree.selectedPanelAddPointsBtn;
-        if (selectedPanelButton != null)
-        {
-            selectedPanelButton.gameObject.SetActive(KnowledgeHelper.IsKnowledgePurchasable(knowledgeId));
-        }
-        
-        if (_buttonCopy != null)
-        {
-            _buttonCopy.SetActive(false);
-        }
+        // Re-select to let the game rebuild the panel (enable toggle, add button); our postfix hides the refund button
+        tree.BtnClicked(tree.currSelectedBtn);
     }
 
     private static void OnKnowledgePurchased(KnowledgeSkillTree __instance)
