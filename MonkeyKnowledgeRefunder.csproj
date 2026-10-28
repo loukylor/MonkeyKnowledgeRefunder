@@ -24,6 +24,9 @@
     <Reference Include="Il2CppNinjaKiwi.LiNK.Client">
       <HintPath>Dependencies\Il2CppNinjaKiwi.LiNK.Client.dll</HintPath>
     </Reference>
+    <Reference Include="Il2CppNinjaKiwi.Localization">
+      <HintPath>Dependencies\Il2CppNinjaKiwi.Localization.dll</HintPath>
+    </Reference>
     <Reference Include="Il2CppSystem.Core">
       <HintPath>Dependencies\Il2CppSystem.Core.dll</HintPath>
     </Reference>

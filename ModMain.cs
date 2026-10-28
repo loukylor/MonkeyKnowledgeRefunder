@@ -22,6 +22,8 @@ public class ModMain : MelonMod
 
     public override void OnInitializeMelon()
     {
+        _logger = LoggerInstance;
+
         MethodBase methodToPatch = AccessTools.Method(typeof(KnowledgeSkillTree), nameof(KnowledgeSkillTree.BtnClicked));
         MethodInfo patchMethod = AccessTools.Method(typeof(ModMain), nameof(OnButtonSelected));
         if (methodToPatch == null || patchMethod == null)
@@ -41,8 +43,6 @@ public class ModMain : MelonMod
         }
 
         HarmonyInstance.Patch(methodToPatch, postfix: new HarmonyMethod(patchMethod));
-
-        _logger = LoggerInstance;
     }
 
     public override void OnSceneWasUnloaded(int buildIndex, string sceneName)
@@ -211,16 +211,8 @@ public class ModMain : MelonMod
         Game.Player.Data.KnowledgePoints++;
 
         tree.UpdateButtonStates();
-        Button selectedPanelButton = tree.selectedPanelAddPointsBtn;
-        if (selectedPanelButton != null)
-        {
-            selectedPanelButton.gameObject.SetActive(KnowledgeHelper.IsKnowledgePurchasable(knowledgeId));
-        }
-        
-        if (_buttonCopy != null)
-        {
-            _buttonCopy.SetActive(false);
-        }
+        // Re-select to let the game rebuild the panel (enable toggle, add button); our postfix hides the refund button
+        tree.BtnClicked(tree.currSelectedBtn);
     }
 
     private static void OnKnowledgePurchased(KnowledgeSkillTree __instance)
